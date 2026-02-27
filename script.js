@@ -67,7 +67,75 @@ document.addEventListener("DOMContentLoaded", () => {
             { opacity: 1, scale: 1, y: 0, duration: 1, ease: "elastic.out(1, 0.5)" }, "-=0.9"
         );
 
-    // 7. BANNER LOGIC
+    // 7. FULLSCREEN NAV OVERLAY
+    const navOverlay = document.getElementById('nav-overlay');
+    const navBackdrop = document.getElementById('nav-backdrop');
+    const navClose = document.getElementById('nav-close');
+    const navLinks = document.querySelectorAll('#nav-links .nav-link-item a');
+    const navBottom = document.getElementById('nav-bottom');
+    const menuBtn = document.getElementById('hero-menu');
+    const hamburger = document.getElementById('hamburger-icon');
+    const menuLabel = menuBtn ? menuBtn.querySelector('.menu-label') : null;
+    let navOpen = false;
+    let navTl = null;
+
+    function buildNavTimeline() {
+        const tl = gsap.timeline({ paused: true, onReverseComplete: () => {
+            navOverlay.classList.add('pointer-events-none');
+            navOpen = false;
+        }});
+
+        tl.to(navBackdrop, { opacity: 1, duration: 0.5, ease: "power2.inOut" })
+          .to(navClose, { opacity: 1, duration: 0.3, pointerEvents: 'auto' }, "-=0.2")
+          .to(navLinks, {
+              y: 0,
+              opacity: 1,
+              duration: 0.6,
+              stagger: 0.08,
+              ease: "power3.out"
+          }, "-=0.3")
+          .to(navBottom, { opacity: 1, duration: 0.4, ease: "power2.out" }, "-=0.2");
+
+        return tl;
+    }
+
+    function openNav() {
+        if (navOpen) return;
+        navOpen = true;
+        navOverlay.classList.remove('pointer-events-none');
+        hamburger.classList.add('active');
+        if (menuLabel) { menuLabel.style.color = 'white'; }
+        document.body.style.overflow = 'hidden';
+        if (!navTl) navTl = buildNavTimeline();
+        navTl.timeScale(1).play();
+    }
+
+    function closeNav() {
+        if (!navOpen) return;
+        hamburger.classList.remove('active');
+        if (menuLabel) { menuLabel.style.color = ''; }
+        document.body.style.overflow = '';
+        if (navTl) navTl.timeScale(1.5).reverse();
+    }
+
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            if (navOpen) closeNav(); else openNav();
+        });
+    }
+    if (navClose) {
+        navClose.addEventListener('click', closeNav);
+    }
+    // Close nav when clicking a link
+    navLinks.forEach(link => {
+        link.addEventListener('click', closeNav);
+    });
+    // Close nav on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navOpen) closeNav();
+    });
+
+    // 8. BANNER LOGIC
     const closeBtn = document.getElementById('close-banner');
     if(closeBtn) {
         closeBtn.addEventListener('click', function() {
